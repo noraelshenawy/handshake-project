@@ -142,6 +142,7 @@ footer{text-align:center;color:var(--muted);font-size:13px;padding:10px 16px 40p
 
 <script>
 const CONTACT_EMAIL = "";
+const SCRIPT_URL = "";
 const CARD_MM = 85.6;
 const C = {card:"#c99a2e", a:"#0f6e63", b:"#d9623b"};
 const DEFS = {
@@ -307,11 +308,29 @@ $('req').addEventListener('submit', e => {
     `${S.type === 'partial' ? 'Wrist' : 'Elbow'} bends: ${S.move}`, `Typical hand on other side: ${S.other === 'yes' ? 'Yes' : 'No'}`,
     `Contact: ${v('f-contact')} – ${v('f-email')}`, `Colors: ${v('f-color') || '–'}`, ``, ...R.lines, ``, `Notes: ${v('f-notes') || '–'}`].join('\n');
   $('summary').textContent = text; $('out').classList.remove('hidden');
+  if (SCRIPT_URL) {
+    const btn = e.submitter || document.querySelector('#req button[type=submit]');
+    btn.disabled = true; btn.textContent = 'Sending…'; $('sendNote').textContent = '';
+    const photos = sides().filter(sd => S.photos[sd].img).map(sd => ({label: sd === 'affected' ? 'limb' : 'other-side', dataUrl: shrink(S.photos[sd].img)}));
+    fetch(SCRIPT_URL, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({name:v('f-name'), email:v('f-email'), limb:S.type === 'partial' ? 'Partial hand' : 'No hand', request:text, photos})})
+    .then(r => r.json()).then(j => { if (!j.ok) throw 0;
+      $('sendNote').innerHTML = '<b>Request sent.</b> The Handshake Project will email you at ' + v('f-email') + ' soon.';
+      btn.textContent = 'Sent'; })
+    .catch(() => { btn.disabled = false; btn.textContent = 'Try again';
+      $('sendNote').textContent = "Your request couldn't be sent. Check your internet and try again, or copy the request above and email it to us."; });
+    return;
+  }
   if (CONTACT_EMAIL) {
     const href = 'mailto:' + CONTACT_EMAIL + '?subject=' + encodeURIComponent('Hand request – ' + v('f-name')) + '&body=' + encodeURIComponent(text);
     $('sendNote').innerHTML = `Copy the request and email it, with the photos attached, to <a href="${href}">${CONTACT_EMAIL}</a>.`;
   } else $('sendNote').textContent = 'Copy the request and send it, with the photos attached, to The Handshake Project.';
 });
+function shrink(im){
+  const max = 1600, k = Math.min(1, max / Math.max(im.naturalWidth, im.naturalHeight));
+  const c = document.createElement('canvas'); c.width = Math.round(im.naturalWidth * k); c.height = Math.round(im.naturalHeight * k);
+  c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); return c.toDataURL('image/jpeg', 0.85);
+}
 $('copy').addEventListener('click', async () => {
   try { await navigator.clipboard.writeText($('summary').textContent); $('copied').textContent = 'Copied'; }
   catch { $('copied').textContent = 'Select the text above and copy it manually.'; }
