@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Handshake Project – Hand Sizer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#1d2a2a;--muted:#5d6b6a;--bg:#f7f3ec;--card:#fffdf9;--line:#e3dccf;--teal:#0f6e63;--teal-l:#d9efe9;--coral:#d9623b;--coral-l:#fbe6dc}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.55}
+header{padding:40px 20px 24px;text-align:center}
+.logo{display:inline-flex;align-items:center;gap:10px;font-family:Fraunces,serif;font-weight:700;font-size:28px;letter-spacing:-.01em}
+.logo svg{width:40px;height:40px}
+.tag{color:var(--muted);margin:8px auto 0;max-width:540px}
+main{max-width:860px;margin:0 auto;padding:0 16px 60px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px;margin-bottom:18px}
+h2{font-family:Fraunces,serif;font-weight:500;font-size:21px;margin:0 0 6px;display:flex;align-items:center;gap:10px}
+h3{font-size:15px;margin:18px 0 4px}
+.num{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--teal);color:#fff;font:600 14px Inter;flex:none}
+p.help{color:var(--muted);margin:4px 0 12px;font-size:15px}
+ul.tips{margin:6px 0 0;padding-left:20px;color:var(--muted);font-size:14px}
+button{font:600 14px Inter;border-radius:10px;border:1px solid var(--line);background:#fff;color:var(--ink);padding:9px 14px;cursor:pointer}
+button.primary{background:var(--teal);border-color:var(--teal);color:#fff}
+button.active{background:var(--coral);border-color:var(--coral);color:#fff}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.choice{border:1.5px solid var(--line);border-radius:12px;padding:14px;cursor:pointer;background:#fff;text-align:left;font:inherit}
+.choice b{display:block;margin-bottom:2px}
+.choice span{color:var(--muted);font-size:14px}
+.choice.sel{border-color:var(--teal);background:var(--teal-l)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-top:6px}
+.seg button{border:0;border-radius:0}
+.seg button.sel{background:var(--teal);color:#fff}
+.stage{position:relative;margin-top:14px;border-radius:12px;overflow:hidden;background:#ece6da;display:none}
+canvas{display:block;width:100%;height:auto;cursor:crosshair}
+.status{margin-top:10px;font-size:14px;padding:10px 12px;border-radius:10px;background:var(--teal-l);color:#0b4f47}
+.status.warn{background:var(--coral-l);color:#8a3317}
+.results{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.metric{background:var(--bg);border-radius:12px;padding:14px}
+.metric small{color:var(--muted);font-size:13px}
+.metric div{font:700 24px Fraunces,serif}
+.metric.big{background:var(--teal);color:#fff}
+.metric.big small{color:#cfe9e4}
+label{display:block;font-size:14px;font-weight:500;margin:10px 0 4px}
+input[type=text],input[type=email],input[type=number],select,textarea{width:100%;font:inherit;padding:9px 11px;border:1px solid var(--line);border-radius:10px;background:#fff}
+textarea{min-height:70px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+@media(max-width:600px){.grid2{grid-template-columns:1fr}}
+pre{white-space:pre-wrap;background:var(--bg);border-radius:10px;padding:12px;font-size:13px}
+.err{color:#b2381a;font-size:13px;margin-top:6px}
+.note{font-size:13px;color:var(--muted);margin-top:10px}
+.flag{background:var(--coral-l);color:#8a3317;border-radius:10px;padding:10px 12px;font-size:14px;margin-top:12px}
+footer{text-align:center;color:var(--muted);font-size:13px;padding:10px 16px 40px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--muted);margin-top:8px}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">
+    <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="23" fill="#0f6e63"/><path d="M11 27c4-1 7-4 10-6l5 3c2 1 4 0 4-2l7 5c-3 4-8 7-13 7s-10-3-13-7z" fill="#f7f3ec"/><path d="M21 21l6-4c2-1 4-1 6 0l4 3" stroke="#f7f3ec" stroke-width="3" fill="none" stroke-linecap="round"/></svg>
+    The Handshake Project
+  </div>
+  <p class="tag">Prosthetic hands, sized from a photo. Tell us about the limb, measure it in a few clicks, and send a request.</p>
+</header>
+<main>
+
+<section class="card">
+  <h2><span class="num">1</span>Tell us about the limb</h2>
+  <p class="help">Which describes the side that needs a device?</p>
+  <div class="choices" id="types">
+    <button type="button" class="choice" data-t="partial"><b>Partial hand</b><span>Some or all fingers are missing, but part of the palm is there.</span></button>
+    <button type="button" class="choice" data-t="forearm"><b>No hand</b><span>The limb ends at or above the wrist (forearm).</span></button>
+  </div>
+  <div id="moveQ" class="hidden">
+    <label id="moveLabel"></label>
+    <div class="seg" id="move"><button type="button" data-v="Yes">Yes</button><button type="button" data-v="A little">A little</button><button type="button" data-v="No">No</button><button type="button" data-v="Not sure">Not sure</button></div>
+    <p class="note" id="moveNote"></p>
+  </div>
+  <div id="otherQ" class="hidden">
+    <label>Is there a typical hand on the other side?</label>
+    <div class="seg" id="other"><button type="button" data-v="yes">Yes</button><button type="button" data-v="no">No</button></div>
+    <p class="note">Measuring the other hand tells us what size the new hand should be.</p>
+  </div>
+</section>
+
+<section class="card hidden" id="photoCard">
+  <h2><span class="num">2</span>Photos and measurements</h2>
+  <p class="help">Lay the limb flat on a table with a standard credit card, library card or gift card flat right next to it. Take the photo from straight above.</p>
+  <ul class="tips">
+    <li>Good light, plain background, limb and card fully in frame.</li>
+    <li>Photos stay on your device. They are never uploaded.</li>
+  </ul>
+  <div class="row" style="margin-top:14px" id="sideTabs"></div>
+  <div id="sideBody" style="margin-top:12px">
+    <p class="help" id="sideHelp"></p>
+    <input type="file" id="file" accept="image/*">
+    <div class="err" id="fileErr"></div>
+    <div class="row" style="margin-top:12px" id="mButtons"></div>
+    <div class="legend" id="legend"></div>
+    <div class="stage" id="stage"><canvas id="cv"></canvas></div>
+    <div class="status" id="status">Upload a photo to start.</div>
+  </div>
+</section>
+
+<section class="card hidden" id="resultCard">
+  <h2><span class="num">3</span>Results</h2>
+  <div class="results" id="results"></div>
+  <div id="flags"></div>
+  <p class="note" id="resultNote"></p>
+</section>
+
+<section class="card hidden" id="reqCard">
+  <h2><span class="num">4</span>Request a hand</h2>
+  <form id="req" novalidate>
+    <div class="grid2">
+      <div><label for="f-name">Recipient first name</label><input type="text" id="f-name"></div>
+      <div><label for="f-age">Recipient age</label><input type="number" id="f-age" min="1" max="120"></div>
+      <div><label for="f-contact">Parent/guardian or contact name</label><input type="text" id="f-contact"></div>
+      <div><label for="f-email">Contact email</label><input type="email" id="f-email"></div>
+      <div><label for="f-hand">Which side needs the device</label><select id="f-hand"><option value="">Choose…</option><option>Left</option><option>Right</option></select></div>
+      <div><label for="f-color">Favorite colors (optional)</label><input type="text" id="f-color"></div>
+    </div>
+    <label for="f-notes">Anything we should know? (sensitive skin, what they'd like to do with the hand…)</label>
+    <textarea id="f-notes"></textarea>
+    <label style="display:flex;gap:8px;align-items:flex-start;font-weight:400;margin-top:12px"><input type="checkbox" id="f-consent" style="margin-top:4px"> I am the recipient, or their parent/guardian, and I agree to share these measurements with The Handshake Project.</label>
+    <div class="err" id="formErr"></div>
+    <div class="row" style="margin-top:14px"><button type="submit" class="primary">Create my request</button></div>
+  </form>
+  <div id="out" class="hidden" style="margin-top:16px">
+    <pre id="summary"></pre>
+    <div class="row"><button id="copy">Copy request</button><span id="copied" style="font-size:13px;color:var(--muted)"></span></div>
+    <p class="note" id="sendNote"></p>
+  </div>
+</section>
+
+</main>
+<footer>The Handshake Project is an independent student project and is not affiliated with or endorsed by e-NABLE. Measurements are estimates and are checked by a volunteer before anything is printed.</footer>
+
+<script>
+const CONTACT_EMAIL = "";
+const CARD_MM = 85.6;
+const C = {card:"#c99a2e", a:"#0f6e63", b:"#d9623b"};
+const DEFS = {
+  partial: {
+    affected: {title:"Limb that needs the device", help:"Photograph the partial hand, palm down.", m:[
+      {k:"card", label:"Card long edge", tip:"corner to corner along the card's long edge", color:C.card},
+      {k:"pw", label:"Palm width", tip:"widest part of the remaining palm", color:C.a},
+      {k:"pl", label:"Palm length", tip:"wrist crease to the end of the palm (or limb)", color:C.b}]},
+    other: {title:"Other hand", help:"Photograph the other hand, palm down, fingers together.", m:[
+      {k:"card", label:"Card long edge", tip:"corner to corner along the card's long edge", color:C.card},
+      {k:"pw", label:"Palm width", tip:"across the knuckles, widest part", color:C.a},
+      {k:"hl", label:"Hand length", tip:"wrist crease to the tip of the middle finger", color:C.b}]}
+  },
+  forearm: {
+    affected: {title:"Limb that needs the device", help:"Photograph the forearm from the side, with the elbow crease in view.", m:[
+      {k:"card", label:"Card long edge", tip:"corner to corner along the card's long edge", color:C.card},
+      {k:"fl", label:"Forearm length", tip:"elbow crease to the end of the limb", color:C.a},
+      {k:"fw", label:"Forearm width", tip:"across the forearm, about 5 cm below the elbow", color:C.b}]},
+    other: {title:"Other arm", help:"Photograph the other forearm and hand from above, palm down.", m:[
+      {k:"card", label:"Card long edge", tip:"corner to corner along the card's long edge", color:C.card},
+      {k:"fl", label:"Forearm length", tip:"elbow crease to the wrist crease", color:C.a},
+      {k:"pw", label:"Palm width", tip:"across the knuckles, widest part", color:C.b}]}
+  }
+};
+const S = {type:null, move:null, other:null, side:'affected',
+  photos:{affected:{img:null, pts:{}}, other:{img:null, pts:{}}}, mode:null};
+const $ = id => document.getElementById(id);
+const cv = $('cv'), ctx = cv.getContext('2d');
+
+document.querySelectorAll('#types .choice').forEach(b => b.addEventListener('click', () => {
+  S.type = b.dataset.t; S.move = null; S.side = 'affected';
+  S.photos = {affected:{img:null, pts:{}}, other:{img:null, pts:{}}};
+  document.querySelectorAll('#types .choice').forEach(x => x.classList.toggle('sel', x === b));
+  $('moveQ').classList.remove('hidden'); $('otherQ').classList.remove('hidden');
+  $('moveLabel').textContent = S.type === 'partial' ? 'Can the wrist bend up and down?' : 'Can the elbow bend and straighten?';
+  document.querySelectorAll('#move button').forEach(x => x.classList.remove('sel')); $('moveNote').textContent = '';
+  $('photoCard').classList.remove('hidden'); $('resultCard').classList.remove('hidden'); $('reqCard').classList.remove('hidden');
+  renderSide(); compute();
+}));
+document.querySelectorAll('#move button').forEach(b => b.addEventListener('click', () => {
+  S.move = b.dataset.v; document.querySelectorAll('#move button').forEach(x => x.classList.toggle('sel', x === b));
+  const joint = S.type === 'partial' ? 'wrist' : 'elbow';
+  $('moveNote').textContent = (S.move === 'No') ? `Most e-NABLE devices are powered by bending the ${joint}. A volunteer will talk through other options with you.` : '';
+  compute();
+}));
+document.querySelectorAll('#other button').forEach(b => b.addEventListener('click', () => {
+  S.other = b.dataset.v; document.querySelectorAll('#other button').forEach(x => x.classList.toggle('sel', x === b));
+  if (S.other === 'no') S.side = 'affected';
+  renderSide(); compute();
+}));
+
+function sides(){ return S.other === 'yes' ? ['affected','other'] : ['affected']; }
+function def(){ return DEFS[S.type][S.side]; }
+function P(){ return S.photos[S.side]; }
+
+function renderSide(){
+  if (!S.type) return;
+  const tabs = $('sideTabs'); tabs.innerHTML = '';
+  sides().forEach(sd => { const b = document.createElement('button'); b.type = 'button';
+    b.textContent = DEFS[S.type][sd].title; if (sd === S.side) b.classList.add('primary');
+    b.onclick = () => { S.side = sd; renderSide(); }; tabs.appendChild(b); });
+  $('sideHelp').textContent = def().help; $('file').value = ''; $('fileErr').textContent = '';
+  const mb = $('mButtons'); mb.innerHTML = '';
+  def().m.forEach(m => { const b = document.createElement('button'); b.type = 'button'; b.textContent = m.label; b.dataset.k = m.k;
+    b.onclick = () => setMode(m.k); mb.appendChild(b); });
+  const clr = document.createElement('button'); clr.type = 'button'; clr.textContent = 'Clear';
+  clr.onclick = () => { P().pts = {}; if (P().img) setMode('card'); compute(); }; mb.appendChild(clr);
+  $('legend').innerHTML = def().m.map(m => `<span><span class="dot" style="background:${m.color}"></span>${m.label}: ${m.tip}</span>`).join('');
+  if (P().img) { cv.width = P().img.naturalWidth; cv.height = P().img.naturalHeight; $('stage').style.display = 'block';
+    const next = def().m.find(m => !done(P().pts[m.k])); next ? setMode(next.k, true) : (S.mode = null, markBtns(), status('All measurements done for this photo.'));
+  } else { $('stage').style.display = 'none'; S.mode = null; status('Upload a photo to start.'); }
+  draw();
+}
+
+$('file').addEventListener('change', e => {
+  const f = e.target.files[0]; $('fileErr').textContent = '';
+  if (!f) return;
+  if (!f.type.startsWith('image/')) { $('fileErr').textContent = 'Choose an image file (JPG or PNG).'; return; }
+  const im = new Image();
+  im.onload = () => { P().img = im; P().pts = {}; cv.width = im.naturalWidth; cv.height = im.naturalHeight;
+    $('stage').style.display = 'block'; setMode('card'); compute(); };
+  im.onerror = () => { $('fileErr').textContent = "That image couldn't be opened. Try another photo."; };
+  im.src = URL.createObjectURL(f);
+});
+
+function status(msg, warn){ $('status').textContent = msg; $('status').className = 'status' + (warn ? ' warn' : ''); }
+function markBtns(){ document.querySelectorAll('#mButtons [data-k]').forEach(b => b.classList.toggle('active', b.dataset.k === S.mode)); }
+function done(a){ return a && a.length === 2; }
+function setMode(k, keep){
+  if (!P().img) { status('Upload a photo first.', true); return; }
+  S.mode = k; if (!keep) P().pts[k] = [];
+  const m = def().m.find(x => x.k === k); markBtns();
+  status(`${m.label}: click the first point (${m.tip}).`); draw();
+}
+cv.addEventListener('click', e => {
+  if (!P().img || !S.mode) return;
+  const r = cv.getBoundingClientRect();
+  const pt = {x:(e.clientX - r.left) * cv.width / r.width, y:(e.clientY - r.top) * cv.height / r.height};
+  const arr = P().pts[S.mode] = (P().pts[S.mode] && P().pts[S.mode].length < 2) ? P().pts[S.mode] : [];
+  arr.push(pt);
+  if (arr.length === 1) status(def().m.find(x => x.k === S.mode).label + ': now click the second point.');
+  else { const next = def().m.find(m => !done(P().pts[m.k]));
+    if (next) { setMode(next.k); compute(); return; }
+    S.mode = null; markBtns();
+    const more = sides().find(sd => sd !== S.side && !def2Done(sd));
+    status(more ? `Done with this photo. Now open "${DEFS[S.type][more].title}" above.` : 'All measurements done. Check your results below.'); }
+  draw(); compute();
+});
+function def2Done(sd){ const p = S.photos[sd]; return p.img && DEFS[S.type][sd].m.every(m => done(p.pts[m.k])); }
+function draw(){
+  const p = P(); if (!p.img) return;
+  ctx.drawImage(p.img, 0, 0); const s = Math.max(cv.width, cv.height) / 900;
+  def().m.forEach(m => { const a = p.pts[m.k] || []; ctx.fillStyle = m.color;
+    if (a.length === 2) { ctx.strokeStyle = m.color; ctx.lineWidth = 4*s; ctx.beginPath(); ctx.moveTo(a[0].x,a[0].y); ctx.lineTo(a[1].x,a[1].y); ctx.stroke(); }
+    a.forEach(q => { ctx.beginPath(); ctx.arc(q.x,q.y,9*s,0,7); ctx.fill(); ctx.lineWidth = 2*s; ctx.strokeStyle = '#fff'; ctx.stroke(); }); });
+}
+function mm(sd, k){ const p = S.photos[sd].pts; if (!done(p.card) || !done(p[k])) return null;
+  const d = a => Math.hypot(a[1].x-a[0].x, a[1].y-a[0].y); return d(p[k]) * CARD_MM / d(p.card); }
+const f0 = v => v == null ? '–' : v.toFixed(0) + ' mm';
+
+let R = null;
+function compute(){
+  if (!S.type) return;
+  const out = [], flags = [], hasOther = S.other === 'yes'; R = {lines:[]};
+  const add = (label, v, big) => { out.push(`<div class="metric${big?' big':''}"><small>${label}</small><div>${v}</div></div>`); };
+  if (S.type === 'partial') {
+    const pw = mm('affected','pw'), pl = mm('affected','pl'), opw = hasOther ? mm('other','pw') : null, ohl = hasOther ? mm('other','hl') : null;
+    add('Palm width (limb)', f0(pw)); add('Palm length (limb)', f0(pl));
+    if (hasOther) { add('Palm width (other hand)', f0(opw)); add('Hand length (other hand)', f0(ohl)); }
+    const scale = pw ? Math.round((pw + 5) / 55 * 100) : null;
+    add('Suggested print scale', scale ? scale + '%' : '–', true);
+    if (pw && opw && opw > pw + 15) flags.push('The other hand is noticeably wider. A volunteer may size the device to match the other hand and add padding for fit.');
+    if (pw && (pw < 30 || pw > 130)) flags.push('That palm width looks unusual. Check that you clicked the card corner to corner along its long edge.');
+    $('resultNote').textContent = 'The scale is a starting estimate from the common e-NABLE rule: (palm width + 5 mm) ÷ 55 mm, so the palm fits inside the device. A volunteer checks it before printing.';
+    R.lines = [`Palm width (limb): ${f0(pw)}`, `Palm length (limb): ${f0(pl)}`];
+    if (hasOther) R.lines.push(`Palm width (other hand): ${f0(opw)}`, `Hand length (other hand): ${f0(ohl)}`);
+    R.lines.push(`Suggested scale: ${scale ? scale + '%' : '–'}`); R.ready = !!(pw && pl);
+  } else {
+    const fl = mm('affected','fl'), fw = mm('affected','fw'), ofl = hasOther ? mm('other','fl') : null, opw = hasOther ? mm('other','pw') : null;
+    add('Forearm length (limb)', f0(fl)); add('Forearm width (limb)', f0(fw));
+    if (hasOther) { add('Forearm length (other arm)', f0(ofl)); add('Palm width (other hand)', f0(opw)); }
+    add('Device type', 'Arm device', true);
+    $('resultNote').textContent = 'Arm devices are sized by a volunteer from these measurements. The other hand, if there is one, sets the size of the new hand.';
+    R.lines = [`Forearm length (limb): ${f0(fl)}`, `Forearm width (limb): ${f0(fw)}`];
+    if (hasOther) R.lines.push(`Forearm length (other arm): ${f0(ofl)}`, `Palm width (other hand): ${f0(opw)}`);
+    R.ready = !!(fl && fw);
+  }
+  if (S.move === 'No') flags.push(`The ${S.type === 'partial' ? 'wrist' : 'elbow'} doesn't bend, so a standard e-NABLE device may not work. Send the request anyway and a volunteer will follow up.`);
+  $('results').innerHTML = out.join(''); $('flags').innerHTML = flags.map(f => `<div class="flag">${f}</div>`).join('');
+}
+
+document.querySelectorAll('#req input, #req select, #req textarea').forEach(el => el.addEventListener('input', () => $('formErr').textContent = ''));
+$('req').addEventListener('submit', e => {
+  e.preventDefault(); const v = id => $(id).value.trim(); const err = $('formErr');
+  if (!S.move || !S.other) { err.textContent = 'Answer the questions in step 1 first.'; return; }
+  if (!R || !R.ready) { err.textContent = 'Finish the measurements for the limb in step 2 first.'; return; }
+  if (!v('f-name') || !v('f-contact') || !v('f-hand')) { err.textContent = 'Fill in the name, contact name and which side.'; return; }
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v('f-email'))) { err.textContent = 'Enter a valid contact email.'; return; }
+  if (!$('f-consent').checked) { err.textContent = 'Check the consent box to continue.'; return; }
+  const text = [`THE HANDSHAKE PROJECT – HAND REQUEST`, `Date: ${new Date().toLocaleDateString()}`, ``,
+    `Recipient: ${v('f-name')}${v('f-age') ? ' (age ' + v('f-age') + ')' : ''}`,
+    `Side: ${v('f-hand')}`, `Limb: ${S.type === 'partial' ? 'Partial hand' : 'No hand (ends at/above wrist)'}`,
+    `${S.type === 'partial' ? 'Wrist' : 'Elbow'} bends: ${S.move}`, `Typical hand on other side: ${S.other === 'yes' ? 'Yes' : 'No'}`,
+    `Contact: ${v('f-contact')} – ${v('f-email')}`, `Colors: ${v('f-color') || '–'}`, ``, ...R.lines, ``, `Notes: ${v('f-notes') || '–'}`].join('\n');
+  $('summary').textContent = text; $('out').classList.remove('hidden');
+  if (CONTACT_EMAIL) {
+    const href = 'mailto:' + CONTACT_EMAIL + '?subject=' + encodeURIComponent('Hand request – ' + v('f-name')) + '&body=' + encodeURIComponent(text);
+    $('sendNote').innerHTML = `Copy the request and email it, with the photos attached, to <a href="${href}">${CONTACT_EMAIL}</a>.`;
+  } else $('sendNote').textContent = 'Copy the request and send it, with the photos attached, to The Handshake Project.';
+});
+$('copy').addEventListener('click', async () => {
+  try { await navigator.clipboard.writeText($('summary').textContent); $('copied').textContent = 'Copied'; }
+  catch { $('copied').textContent = 'Select the text above and copy it manually.'; }
+});
+</script>
+</body>
+</html>
